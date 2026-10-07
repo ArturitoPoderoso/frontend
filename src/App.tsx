@@ -2387,15 +2387,64 @@ function NewGrade({
 }
 
 function Timetable({ sections }: { sections: Section[] }) {
+  const periods = useMemo(() => {
+    const list = Array.from(
+      new Set(sections.map((s) => s.period_code || s.period || "2027-1"))
+    ).sort();
+    return list.length ? list : ["2027-1"];
+  }, [sections]);
+
+  const [activeTab, setActiveTab] = useState<string>(periods[0] || "2027-1");
+
+  useEffect(() => {
+    if (periods.length && !periods.includes(activeTab)) {
+      setActiveTab(periods[0]);
+    }
+  }, [periods, activeTab]);
+
+  const activeSections = useMemo(
+    () => sections.filter((s) => (s.period_code || s.period || "2027-1") === activeTab),
+    [sections, activeTab]
+  );
+
   return (
     <div className="panel spaced">
-      <span className="eyebrow">MATRÍCULA CONFIRMADA</span>
-      <h2>Mi horario semanal</h2>
-      <div className="week-grid">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+        <div>
+          <span className="eyebrow">MATRÍCULA CONFIRMADA</span>
+          <h2 style={{ margin: 0 }}>Mi horario semanal</h2>
+        </div>
+        {periods.length > 1 && (
+          <div style={{ display: "flex", gap: "0.5rem", background: "#f5f5f5", padding: "4px", borderRadius: "8px" }}>
+            {periods.map((p) => (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setActiveTab(p)}
+                style={{
+                  padding: "6px 16px",
+                  borderRadius: "6px",
+                  border: "none",
+                  fontWeight: activeTab === p ? "600" : "normal",
+                  background: activeTab === p ? "var(--primary, #c62828)" : "transparent",
+                  color: activeTab === p ? "#fff" : "#555",
+                  cursor: "pointer",
+                  fontSize: "0.88rem",
+                  transition: "all 0.2s ease",
+                }}
+              >
+                Semestre {p} {p.endsWith("-1") ? "(1er Semestre)" : p.endsWith("-2") ? "(2do Semestre)" : ""}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="week-grid" style={{ marginTop: "1rem" }}>
         {days.map((day, i) => (
           <div className="week-day" key={day}>
             <strong>{day}</strong>
-            {sections.flatMap((s) =>
+            {activeSections.flatMap((s) =>
               s.meetings
                 .filter((m) => m.day === i)
                 .map((m) => (
@@ -2410,7 +2459,7 @@ function Timetable({ sections }: { sections: Section[] }) {
                   </div>
                 )),
             )}
-            {sections.every((s) => s.meetings.every((m) => m.day !== i)) && (
+            {activeSections.every((s) => s.meetings.every((m) => m.day !== i)) && (
               <small className="free-day">Sin clases</small>
             )}
           </div>
