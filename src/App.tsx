@@ -17,6 +17,7 @@ import {
   Clock3,
   UserRound,
   Camera,
+  Lock,
 } from "lucide-react";
 import {
   api,
@@ -786,15 +787,25 @@ function StudentPage({
             {catalog.period.code}
           </Badge>
         </div>
-        <div className="search">
-          <Search size={18} />
-          <input
-            placeholder="Buscar curso o código..."
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-          />
-        </div>
-        <div className="enrollment-layout">
+        {catalog.period.status !== "pre" && catalog.period.status !== "enroll" ? (
+          <div className="panel" style={{ textAlign: "center", padding: "3rem 2rem", marginTop: "1.5rem" }}>
+            <Lock size={44} style={{ color: "#c62828", marginBottom: "1rem" }} />
+            <h2>Proceso de Matrícula No Disponible</h2>
+            <p style={{ maxWidth: "520px", margin: "0.5rem auto 1.5rem", color: "#666" }}>
+              Actualmente el período académico <strong>{catalog.period.code}</strong> se encuentra cerrado. No hay cursos ni secciones habilitadas para selección en este momento.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="search">
+              <Search size={18} />
+              <input
+                placeholder="Buscar curso o código..."
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+              />
+            </div>
+            <div className="enrollment-layout">
           <div className="course-list">
             {available
               .filter((c) =>
@@ -1009,6 +1020,8 @@ function StudentPage({
             </div>
           </div>
         </div>
+          </>
+        )}
       </>
     );
   if (page === "historial")
