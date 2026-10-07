@@ -42,6 +42,8 @@ export interface Section {
   theory_hours: number | null;
   practice_hours: number | null;
   period?: string;
+  period_id?: number;
+  period_code?: string;
 }
 export interface Course {
   id: number;

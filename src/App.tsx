@@ -61,6 +61,12 @@ function fmt(t: string) {
   });
 }
 function overlap(a: Section, b: Section) {
+  if (a.period_code && b.period_code && a.period_code !== b.period_code) {
+    return false;
+  }
+  if (a.period_id && b.period_id && a.period_id !== b.period_id) {
+    return false;
+  }
   return a.meetings.some((x) =>
     b.meetings.some(
       (y) => x.day === y.day && x.start < y.end && y.start < x.end,
