@@ -94,6 +94,13 @@ export default function App() {
       .then(setMe)
       .catch(() => {})
       .finally(() => setLoading(false));
+
+    const meInterval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        api<Identity>("/me/").then(setMe).catch(() => {});
+      }
+    }, 5000);
+    return () => clearInterval(meInterval);
   }, []);
   async function out() {
     await api("/auth/logout/", "POST");
@@ -429,9 +436,9 @@ function StudentPage({
   const [selected, setSelected] = useState<Record<number, number>>({});
   const [selectedSemester, setSelectedSemester] = useState<number | null>(null);
   const [convalidation, setConvalidation] = useState<Convalidation | null>(null);
-  async function refresh() {
+  async function refresh(isBackground = false) {
     try {
-            const [c, g, e, p, conv] = await Promise.all([
+      const [c, g, e, p, conv] = await Promise.all([
         api<Catalog>("/catalog/"),
         api<Grade[]>("/grades/"),
         api<Enrollment[]>("/enrollments/"),
@@ -443,15 +450,23 @@ function StudentPage({
       setEnrollments(e);
       setPre(p);
       setConvalidation(conv);
-      setSelected(
-        Object.fromEntries(p.map((x) => [x.course_id, x.section_id || x.course_id])),
-      );
+      if (!isBackground) {
+        setSelected(
+          Object.fromEntries(p.map((x) => [x.course_id, x.section_id || x.course_id])),
+        );
+      }
     } catch (e) {
-      setError(explain(e));
+      if (!isBackground) setError(explain(e));
     }
   }
   useEffect(() => {
     void refresh();
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        void refresh(true);
+      }
+    }, 4000);
+    return () => clearInterval(interval);
   }, []);
   const sections = catalog?.sections || [];
   const courses = catalog?.courses || [];
